@@ -6,6 +6,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import site.khmelinin.RestAuth.model.User;
+import site.khmelinin.RestAuth.model.UserDetailsImpl;
 import site.khmelinin.RestAuth.repository.UserRepository;
 
 @Service
@@ -25,6 +26,6 @@ public class UserService implements UserDetailsService {
         ));
 
 
-        return null;
+        return UserDetailsImpl.build(user);
     }
 }
