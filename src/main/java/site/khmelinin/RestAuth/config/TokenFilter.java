@@ -5,6 +5,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,6 +21,15 @@ public class TokenFilter extends OncePerRequestFilter {
     private JwtCore jwtCore;
     private UserDetailsService userDetailsService;
 
+    @Autowired
+    public void setJwtCore(JwtCore jwtCore) {
+        this.jwtCore = jwtCore;
+    }
+
+    @Autowired
+    public void setUserDetailsService(UserDetailsService userDetailsService) {
+        this.userDetailsService = userDetailsService;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -36,7 +46,8 @@ public class TokenFilter extends OncePerRequestFilter {
                 try {
                     username = jwtCore.getNameFromJwt(jwt);
                 } catch (ExpiredJwtException e) {
-                    throw new RuntimeException(e);
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "JWT has expired");
+                    return;
                 }
             }
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
@@ -47,7 +58,8 @@ public class TokenFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal Server Error");
+            return;
         }
         filterChain.doFilter(request, response);
     }
